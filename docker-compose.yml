@@ -1,0 +1,35 @@
+version: '2.3'
+services:
+    tf_od_training:
+        image: tf_od_training
+        container_name: tf_od_training
+        hostname: tf_od_training
+        restart: always
+        runtime: nvidia
+        volumes:
+            - "./workspace/:/home/tensorflow/workspace"
+        environment:
+            TZ: 
+            AWS_ACCESS_KEY_ID: 
+            AWS_SECRET_ACCESS_KEY: 
+            AWS_DEFAULT_REGION: 
+            MLFLOW_TRACKING_URI: 
+            MLFLOW_EXPERIMENT_NAME: 
+        command:
+            tail -F anything
+    tf_od_eval:
+        image: tf_od_training
+        container_name: tf_od_eval
+        hostname: tf_od_eval
+        restart: always
+        volumes:
+            - "./workspace/:/home/tensorflow/workspace"
+        environment:
+            TZ:
+            AWS_ACCESS_KEY_ID: 
+            AWS_SECRET_ACCESS_KEY: 
+            AWS_DEFAULT_REGION: 
+            MLFLOW_TRACKING_URI: 
+            MLFLOW_EXPERIMENT_NAME: 
+        command:
+            tail -F anything
