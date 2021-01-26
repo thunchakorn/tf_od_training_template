@@ -33,6 +33,7 @@ from object_detection import model_lib_v2
 import mlflow
 import mlflow.tensorflow
 import os
+from shutil import copyfile
 
 flags.DEFINE_string('pipeline_config_path', None, 'Path to pipeline config '
                     'file.')
@@ -82,7 +83,12 @@ def main(unused_argv):
         flags.mark_flag_as_required('model_dir')
         flags.mark_flag_as_required('pipeline_config_path')
         tf.config.set_soft_device_placement(True)
-        mlflow.log_artifact(FLAGS.pipeline_config_path)
+
+        # log config file in .txt format because .txt can be preview in mlflow
+        configfile_log_dst = FLAGS.pipeline_config_path.replace('pbtxt', 'txt') 
+        copyfile(FLAGS.pipeline_config_path, configfile_log_dst)
+        mlflow.log_artifact(configfile_log_dst)
+
         if FLAGS.checkpoint_dir:
             
             model_lib_v2.eval_continuously(
