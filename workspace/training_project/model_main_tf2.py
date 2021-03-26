@@ -35,6 +35,8 @@ import mlflow.tensorflow
 import os
 from shutil import copyfile
 
+from tfevet_utils import get_metrics_from_train_tfevent, get_metrics_and_image_from_eval_tfevent
+
 flags.DEFINE_string('pipeline_config_path', None, 'Path to pipeline config '
                     'file.')
 flags.DEFINE_integer('num_train_steps', None, 'Number of train steps.')
@@ -100,6 +102,23 @@ def main(unused_argv):
                     FLAGS.sample_1_of_n_eval_on_train_examples),
                 checkpoint_dir=FLAGS.checkpoint_dir,
                 wait_interval=300, timeout=FLAGS.eval_timeout)
+
+            # log experiment
+            print('logging experiment to mlflow')
+            logdir = os.path.join(FLAGS.checkpoint_dir, 'eval')
+            print('getting train metrics')
+            train_metrics = get_metrics_from_train_tfevent(logdir=logdir)
+            print('getting eval metrics')
+            eval_metrics = get_metrics_and_image_from_eval_tfevent(logdir=logdir)
+            print('logging train metrics')
+            for step, m in enumerate(train_metrics):
+                mlflow.log_metrics(metrics=m, step=step)
+            print('logging eval metrics')
+            for step, m in eval_metrics.items():
+                mlflow.log_metrics(metrics=m, step=step)
+            print('logging model folder')
+            mlflow.log_artifacts(FLAGS.model_dir)
+            
         else:
             if FLAGS.use_tpu:
                 # TPU is automatically inferred if tpu_name is None and
@@ -122,7 +141,6 @@ def main(unused_argv):
                     use_tpu=FLAGS.use_tpu,
                     checkpoint_every_n=FLAGS.checkpoint_every_n,
                     record_summaries=FLAGS.record_summaries)
-                mlflow.log_artifacts(FLAGS.model_dir)
                 
 if __name__ == '__main__':
     tf.compat.v1.app.run()
